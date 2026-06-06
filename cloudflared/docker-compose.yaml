@@ -1,0 +1,13 @@
+networks:
+  genkaiki-proxy:
+    external: true
+
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: always
+    networks:
+      - genkaiki-proxy
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    environment:
+      - CLOUDFLARE_TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}

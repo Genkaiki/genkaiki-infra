@@ -51,13 +51,3 @@ services:
       timeout: 5s
       retries: 5
 
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    restart: unless-stopped
-    networks:
-      - sonarqube
-    depends_on:
-      - sonarqube
-    command: tunnel --no-autoupdate --url http://sonarqube:9000
-    # URL pública aparece nos logs:
-    # docker compose logs cloudflared | grep trycloudflare
