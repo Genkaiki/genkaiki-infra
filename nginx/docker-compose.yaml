@@ -1,0 +1,14 @@
+networks:
+  genkaiki-proxy:
+    external: true
+
+services:
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - 80:80
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d:ro
+    networks:
+      - genkaiki-proxy

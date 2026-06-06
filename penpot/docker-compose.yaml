@@ -13,6 +13,8 @@ x-secret-key: &penpot-secret-key
 
 networks:
   penpot:
+  genkaiki-proxy:
+    external: true
 
 volumes:
   penpot_postgres_v15:
@@ -32,6 +34,7 @@ services:
       - penpot-mcp
     networks:
       - penpot
+      - genkaiki-proxy
 
   penpot-backend:
     image: "penpotapp/backend:2.15"
