@@ -1,0 +1,109 @@
+x-flags: &penpot-flags
+  PENPOT_FLAGS: disable-email-verification disable-secure-session-cookies enable-smtp enable-prepl-server enable-mcp
+
+x-uri: &penpot-public-uri
+  PENPOT_PUBLIC_URI: http://localhost:9001
+
+x-body-size: &penpot-http-body-size
+  PENPOT_HTTP_SERVER_MAX_BODY_SIZE: 367001600
+  PENPOT_HTTP_SERVER_MAX_MULTIPART_BODY_SIZE: 367001600
+
+x-secret-key: &penpot-secret-key
+  PENPOT_SECRET_KEY: dbc-penpot-local-secret-key-change-in-prod
+
+networks:
+  penpot:
+
+volumes:
+  penpot_postgres_v15:
+  penpot_assets:
+
+services:
+  penpot-frontend:
+    image: "penpotapp/frontend:2.15"
+    restart: always
+    ports:
+      - 9001:8080
+    volumes:
+      - penpot_assets:/opt/data/assets
+    depends_on:
+      - penpot-backend
+      - penpot-exporter
+      - penpot-mcp
+    networks:
+      - penpot
+
+  penpot-backend:
+    image: "penpotapp/backend:2.15"
+    restart: always
+    volumes:
+      - penpot_assets:/opt/data/assets
+    depends_on:
+      - penpot-postgres
+      - penpot-valkey
+    networks:
+      - penpot
+    environment:
+      << : [*penpot-flags, *penpot-public-uri, *penpot-http-body-size, *penpot-secret-key]
+      PENPOT_DATABASE_URI: postgresql://penpot-postgres/penpot
+      PENPOT_DATABASE_USERNAME: penpot
+      PENPOT_DATABASE_PASSWORD: penpot
+      PENPOT_REDIS_URI: redis://penpot-valkey/0
+      PENPOT_ASSETS_STORAGE_BACKEND: assets-fs
+      PENPOT_STORAGE_ASSETS_FS_DIRECTORY: /opt/data/assets
+      PENPOT_TELEMETRY_ENABLED: false
+      PENPOT_SMTP_DEFAULT_FROM: no-reply@example.com
+      PENPOT_SMTP_DEFAULT_REPLY_TO: no-reply@example.com
+      PENPOT_SMTP_HOST: penpot-mailcatch
+      PENPOT_SMTP_PORT: 1025
+      PENPOT_SMTP_SSL: false
+      PENPOT_SMTP_TLS: false
+
+  penpot-exporter:
+    image: "penpotapp/exporter:2.15"
+    restart: always
+    networks:
+      - penpot
+    environment:
+      PENPOT_PUBLIC_URI: http://penpot-frontend:8080
+      PENPOT_REDIS_URI: redis://penpot-valkey/0
+
+  penpot-mcp:
+    image: "penpotapp/mcp:2.15"
+    restart: always
+    ports:
+      - 7070:7070
+    networks:
+      - penpot
+    environment:
+      PENPOT_MCP_PENPOT_BASE_URL: http://penpot-backend:6060
+      PENPOT_MCP_PORT: 7070
+
+  penpot-postgres:
+    image: "penpotapp/postgres:15"
+    restart: always
+    stop_signal: SIGINT
+    networks:
+      - penpot
+    volumes:
+      - penpot_postgres_v15:/var/lib/postgresql/data
+    environment:
+      POSTGRES_INITDB_ARGS: --data-checksums
+      POSTGRES_DB: penpot
+      POSTGRES_USER: penpot
+      POSTGRES_PASSWORD: penpot
+
+  penpot-valkey:
+    image: "valkey/valkey:8"
+    restart: always
+    networks:
+      - penpot
+    command: valkey-server --appendonly yes
+
+  penpot-mailcatch:
+    image: sj26/mailcatcher:latest
+    restart: always
+    networks:
+      - penpot
+    ports:
+      - 1080:1080
