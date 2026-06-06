@@ -75,8 +75,10 @@ services:
     volumes:
       - penpot_assets:/opt/data/assets
     depends_on:
-      - penpot-postgres
-      - penpot-valkey
+      penpot-postgres:
+        condition: service_healthy
+      penpot-valkey:
+        condition: service_started
     networks:
       - penpot
     environment:
@@ -116,7 +118,7 @@ services:
       PENPOT_MCP_PORT: 7070
 
   penpot-postgres:
-    image: "penpotapp/postgres:15"
+    image: "postgres:15"
     restart: always
     stop_signal: SIGINT
     networks:
@@ -124,10 +126,14 @@ services:
     volumes:
       - penpot_postgres_v15:/var/lib/postgresql/data
     environment:
-      POSTGRES_INITDB_ARGS: --data-checksums
       POSTGRES_DB: penpot
       POSTGRES_USER: penpot
       POSTGRES_PASSWORD: penpot
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U penpot -d penpot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   penpot-valkey:
     image: "valkey/valkey:8"
