@@ -107,3 +107,14 @@ services:
       - penpot
     ports:
       - 1080:1080
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    networks:
+      - penpot
+    depends_on:
+      - penpot-frontend
+    command: tunnel --no-autoupdate --url http://penpot-frontend:8080
+    # URL pública aparece nos logs:
+    # docker compose logs cloudflared | grep trycloudflare
