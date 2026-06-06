@@ -31,7 +31,6 @@ services:
 
   # ── NGINX ──────────────────────────────────────────────
   nginx:
-    container_name: genkaiki-nginx
     image: nginx:alpine
     restart: always
     ports:
@@ -46,7 +45,6 @@ services:
 
   # ── CLOUDFLARE TUNNEL ──────────────────────────────────
   cloudflared:
-    container_name: genkaiki-cloudflared
     image: cloudflare/cloudflared:latest
     restart: always
     networks:
@@ -59,7 +57,6 @@ services:
 
   # ── PENPOT ─────────────────────────────────────────────
   penpot-frontend:
-    container_name: genkaiki-penpot-frontend
     image: "penpotapp/frontend:2.15"
     restart: always
     ports:
@@ -75,7 +72,6 @@ services:
       - genkaiki-proxy
 
   penpot-backend:
-    container_name: genkaiki-penpot-backend
     image: "penpotapp/backend:2.15"
     restart: always
     volumes:
@@ -89,32 +85,30 @@ services:
       - genkaiki-penpot
     environment:
       <<: [*penpot-flags, *penpot-uri, *penpot-body, *penpot-secret]
-      PENPOT_DATABASE_URI: postgresql://genkaiki-penpot-postgres/penpot
+      PENPOT_DATABASE_URI: postgresql://penpot-postgres/penpot
       PENPOT_DATABASE_USERNAME: penpot
       PENPOT_DATABASE_PASSWORD: penpot
-      PENPOT_REDIS_URI: redis://genkaiki-penpot-valkey/0
+      PENPOT_REDIS_URI: redis://penpot-valkey/0
       PENPOT_ASSETS_STORAGE_BACKEND: assets-fs
       PENPOT_STORAGE_ASSETS_FS_DIRECTORY: /opt/data/assets
       PENPOT_TELEMETRY_ENABLED: false
       PENPOT_SMTP_DEFAULT_FROM: no-reply@example.com
       PENPOT_SMTP_DEFAULT_REPLY_TO: no-reply@example.com
-      PENPOT_SMTP_HOST: genkaiki-penpot-mailcatch
+      PENPOT_SMTP_HOST: penpot-mailcatch
       PENPOT_SMTP_PORT: 1025
       PENPOT_SMTP_SSL: false
       PENPOT_SMTP_TLS: false
 
   penpot-exporter:
-    container_name: genkaiki-penpot-exporter
     image: "penpotapp/exporter:2.15"
     restart: always
     networks:
       - genkaiki-penpot
     environment:
-      PENPOT_PUBLIC_URI: http://genkaiki-penpot-frontend:8080
-      PENPOT_REDIS_URI: redis://genkaiki-penpot-valkey/0
+      PENPOT_PUBLIC_URI: http://penpot-frontend:8080
+      PENPOT_REDIS_URI: redis://penpot-valkey/0
 
   penpot-mcp:
-    container_name: genkaiki-penpot-mcp
     image: "penpotapp/mcp:2.15"
     restart: always
     ports:
@@ -122,11 +116,10 @@ services:
     networks:
       - genkaiki-penpot
     environment:
-      PENPOT_MCP_PENPOT_BASE_URL: http://genkaiki-penpot-backend:6060
+      PENPOT_MCP_PENPOT_BASE_URL: http://penpot-backend:6060
       PENPOT_MCP_PORT: 7070
 
   penpot-postgres:
-    container_name: genkaiki-penpot-postgres
     image: "postgres:15"
     restart: always
     stop_signal: SIGINT
@@ -145,7 +138,6 @@ services:
       retries: 5
 
   penpot-valkey:
-    container_name: genkaiki-penpot-valkey
     image: "valkey/valkey:8"
     restart: always
     networks:
@@ -153,7 +145,6 @@ services:
     command: valkey-server --appendonly yes
 
   penpot-mailcatch:
-    container_name: genkaiki-penpot-mailcatch
     image: sj26/mailcatcher:latest
     restart: always
     networks:
@@ -163,7 +154,6 @@ services:
 
   # ── SONARQUBE ──────────────────────────────────────────
   sonarqube:
-    container_name: genkaiki-sonarqube
     image: sonarqube:community
     restart: always
     depends_on:
@@ -179,7 +169,7 @@ services:
       - sonarqube_extensions:/opt/sonarqube/extensions
       - sonarqube_logs:/opt/sonarqube/logs
     environment:
-      SONAR_JDBC_URL: jdbc:postgresql://genkaiki-sonarqube-postgres:5432/sonar
+      SONAR_JDBC_URL: jdbc:postgresql://sonarqube-postgres:5432/sonar
       SONAR_JDBC_USERNAME: sonar
       SONAR_JDBC_PASSWORD: sonar
     ulimits:
@@ -188,7 +178,6 @@ services:
         hard: 65536
 
   sonarqube-postgres:
-    container_name: genkaiki-sonarqube-postgres
     image: postgres:15
     restart: always
     networks:
