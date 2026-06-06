@@ -1,3 +1,5 @@
+name: cloudflared
+
 networks:
   genkaiki-proxy:
     external: true

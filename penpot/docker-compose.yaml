@@ -1,3 +1,5 @@
+name: penpot
+
 x-flags: &penpot-flags
   PENPOT_FLAGS: disable-email-verification disable-secure-session-cookies enable-smtp enable-prepl-server enable-mcp
 

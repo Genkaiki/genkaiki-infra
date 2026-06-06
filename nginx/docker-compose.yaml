@@ -1,3 +1,5 @@
+name: nginx
+
 networks:
   genkaiki-proxy:
     external: true
